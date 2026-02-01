@@ -21,7 +21,7 @@ st.markdown("""
         margin-bottom: 20px;
     }
     </style>
-    """, unsafe_allow_name_with_html=True)
+    """, unsafe_allow_html=True)
 
 # --- STEP 1 & 2: DATA LOADING & PREPROCESSING ---
 @st.cache_data # Caching ensures the app loads instantly after the first time
@@ -105,7 +105,7 @@ if st.button("✨ Get Recommendations"):
                             <p><b>⭐ Rating:</b> {row['ratings']}</p>
                             <a href="{row['links']}" target="_blank" style="color: #ff4b4b;">Order on Zomato →</a>
                         </div>
-                    """, unsafe_allow_name_with_html=True)
+                    """, unsafe_allow_html=True)
                     
     except Exception as e:
         st.error(f"Something went wrong: {e}")
@@ -119,4 +119,5 @@ with st.expander("Is the latest review positive? Check here before you go!"):
         # This is where you'd link your Bidirectional LSTM model
         # For now, we'll simulate the integration logic
         st.success("Analysis Engine Linked! (Using your Sentiment App's LSTM Logic)")
+
         st.info("The review suggests a **Positive Vibe** with 92% confidence.")
