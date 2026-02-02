@@ -24,43 +24,42 @@ st.markdown("""
     """, unsafe_allow_html=True)
 
 # --- STEP 1 & 2: DATA LOADING & PREPROCESSING ---
-@st.cache_data # Caching ensures the app loads instantly after the first time
+@st.cache_data
 def load_and_clean_data():
     df = pd.read_csv('HyderabadResturants.csv')
     
-    # Simple Cleaning
-    df['ratings_numeric'] = pd.to_numeric(df['ratings'], errors='coerce').fillna(df['ratings'].mode()[0])
-    df['cuisine_norm'] = df['cuisine'].str.lower().str.replace('[^a-zA-Z0-9, ]', '', regex=True).str.strip()
+    # 1. Basic Cleaning
+    df['ratings_numeric'] = pd.to_numeric(df['ratings'], errors='coerce').fillna(3.5)
     
+    df['cuisine_norm'] = df['cuisine'].str.lower().str.replace('[^a-zA-Z0-9, ]', '', regex=True).fillna('')
+
     def get_locality(link):
         try:
-            parts = link.split('/')
+            parts = str(link).split('/')
             raw_segment = parts[4] if len(parts) > 4 else ""
             words = raw_segment.split('-')
-            
             if len(words) >= 3 and len(words[-3]) == 1:
-                full_locality = " ".join(words[-3:]).title()
-            else:
-                full_locality = " ".join(words[-2:]).title()
-                
-            return full_locality.replace('Order', '').strip()
+                return " ".join(words[-3:]).title().replace('Order', '').strip()
+            return " ".join(words[-2:]).title().replace('Order', '').strip()
         except:
             return "Hyderabad"
 
     df['locality'] = df['links'].apply(get_locality)
+    return df
 
-
+# Initialize Data
 df = load_and_clean_data()
 
 # --- STEP 5 & 6: RECOMMENDATION ENGINE ---
-@st.cache_resource # Resource caching for the ML matrix
+@st.cache_resource
 def build_engine(data):
+    # We use 'cuisine_norm' which was just created in the function above
     tfidf = TfidfVectorizer(stop_words='english')
     tfidf_matrix = tfidf.fit_transform(data['cuisine_norm'])
-    sim_matrix = cosine_similarity(tfidf_matrix, tfidf_matrix)
-    return sim_matrix
+    return cosine_similarity(tfidf_matrix, tfidf_matrix)
 
 cosine_sim = build_engine(df)
+
 
 # --- UI HEADER ---
 st.title("🍲 Hyderabad Restaurant Recommender")
@@ -117,3 +116,4 @@ if st.button("✨ Get Recommendations"):
             st.error(f"Something went wrong: {e}")
     else:
         st.warning("📍 This restaurant isn't in our database. Try 'Bawarchi' or 'pista house' !")
+
