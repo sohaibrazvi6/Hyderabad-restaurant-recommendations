@@ -38,11 +38,29 @@ def load_and_clean_data():
             parts = str(link).split('/')
             raw_segment = parts[4] if len(parts) > 4 else ""
             words = raw_segment.split('-')
+            
+            # Capture 3 words for single-letter prefixes (S R Nagar)
             if len(words) >= 3 and len(words[-3]) == 1:
-                return " ".join(words[-3:]).title().replace('Order', '').strip()
-            return " ".join(words[-2:]).title().replace('Order', '').strip()
+                result = " ".join(words[-3:]).title()
+            else:
+                result = " ".join(words[-2:]).title()
+            
+            # Expanded Junk Filter
+            junk_list = [
+                'Monk', 'Hotel', 'Cafe', 'Restaurant', 'Bakery', 'Bristo', 
+                'Order', 'House', 'Life', 'King', 'Point', 'Zone', 'Club'
+            ]
+            
+            for junk in junk_list:
+                result = result.replace(junk, '').strip()
+            
+            # Remove standalone numbers (1, 2, 3, etc.)
+            result = " ".join([w for w in result.split() if not w.isdigit()])
+            
+            return result if result else "Hyderabad"
         except:
             return "Hyderabad"
+            
 
     df['locality'] = df['links'].apply(get_locality)
     return df
@@ -116,4 +134,5 @@ if st.button("✨ Get Recommendations"):
             st.error(f"Something went wrong: {e}")
     else:
         st.warning("📍 This restaurant isn't in our database. Try 'Bawarchi' or 'pista house' !")
+
 
