@@ -32,15 +32,23 @@ def load_and_clean_data():
     df['ratings_numeric'] = pd.to_numeric(df['ratings'], errors='coerce').fillna(df['ratings'].mode()[0])
     df['cuisine_norm'] = df['cuisine'].str.lower().str.replace('[^a-zA-Z0-9, ]', '', regex=True).str.strip()
     
-    # Locality Extraction (Step 3 Logic)
-    def get_locality(link):
+        def get_locality(link):
         try:
-            return link.split('/')[-2].split('-')[-1].title()
+            parts = link.split('/')
+            raw_segment = parts[4] if len(parts) > 4 else ""
+            words = raw_segment.split('-')
+            
+            if len(words) >= 3 and len(words[-3]) == 1:
+                full_locality = " ".join(words[-3:]).title()
+            else:
+                full_locality = " ".join(words[-2:]).title()
+                
+            return full_locality.replace('Order', '').strip()
         except:
             return "Hyderabad"
+
     df['locality'] = df['links'].apply(get_locality)
-    
-    return df
+
 
 df = load_and_clean_data()
 
@@ -121,3 +129,4 @@ with st.expander("Is the latest review positive? Check here before you go!"):
         st.success("Analysis Engine Linked! (Using your Sentiment App's LSTM Logic)")
 
         st.info("The review suggests a **Positive Vibe** with 92% confidence.")
+
