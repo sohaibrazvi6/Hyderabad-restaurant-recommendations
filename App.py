@@ -32,7 +32,7 @@ def load_and_clean_data():
     df['ratings_numeric'] = pd.to_numeric(df['ratings'], errors='coerce').fillna(df['ratings'].mode()[0])
     df['cuisine_norm'] = df['cuisine'].str.lower().str.replace('[^a-zA-Z0-9, ]', '', regex=True).str.strip()
     
-        def get_locality(link):
+    def get_locality(link):
         try:
             parts = link.split('/')
             raw_segment = parts[4] if len(parts) > 4 else ""
@@ -116,3 +116,4 @@ col1, col2 = st.columns([1, 1])
                 st.error(f"Something went wrong: {e}")
         else:
             st.warning("📍 This restaurant isn't in our database. Try 'Bawarchi'!")
+
