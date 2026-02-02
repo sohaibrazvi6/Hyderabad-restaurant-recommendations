@@ -74,45 +74,46 @@ budget = st.sidebar.slider("Max Budget (Price for One)", min_value=50, max_value
 
 st.sidebar.info("💡 **Pro Tip:** This app uses TF-IDF and Cosine Similarity to match restaurant 'flavor profiles' with 95% relevance.")
 
-# --- MAIN INTERFACE ---
+# --- MAIN INTERFACE ---.
+# --- MAIN INTERACTION ---
 col1, col2 = st.columns([1, 1])
 
-    with col1:
-        target_restaurant = st.selectbox("Type or select a restaurant you love:", options=df['names'].unique())
-        num_recs = st.number_input("How many recommendations?", min_value=1, max_value=10, value=5)
+with col1:
+    target_restaurant = st.selectbox("Type or select a restaurant you love:", options=df['names'].unique())
+    num_recs = st.number_input("How many recommendations?", min_value=1, max_value=10, value=5)
 
-    if st.button("✨ Get Recommendations"):
-        if target_restaurant in df['names'].values:
-            try:
-                with st.spinner('Analyzing flavor profiles...'):
-                    idx = df[df['names'] == target_restaurant].index[0]
-                    sim_scores = list(enumerate(cosine_sim[idx]))
-                    sim_scores = sorted(sim_scores, key=lambda x: x[1], reverse=True)[1:51]
-                    
-                    candidate_indices = [i[0] for i in sim_scores]
-                    recs = df.iloc[candidate_indices].copy()
-                    
-                    if selected_area:
-                        recs = recs[recs['locality'].isin(selected_area)]
-                    recs = recs[recs['price for one'] <= budget]
+if st.button("✨ Get Recommendations"):
+    if target_restaurant in df['names'].values:
+        try:
+            with st.spinner('Analyzing flavor profiles...'):
+                idx = df[df['names'] == target_restaurant].index[0]
+                sim_scores = list(enumerate(cosine_sim[idx]))
+                sim_scores = sorted(sim_scores, key=lambda x: x[1], reverse=True)[1:51]
+                
+                candidate_indices = [i[0] for i in sim_scores]
+                recs = df.iloc[candidate_indices].copy()
+                
+                if selected_area:
+                    recs = recs[recs['locality'].isin(selected_area)]
+                recs = recs[recs['price for one'] <= budget]
 
-                    if recs.empty:
-                        st.warning("⚠️ No matches found. Try expanding your area or budget!")
-                    else:
-                        st.subheader(f"Because you liked {target_restaurant}...")
-                        for i in range(min(len(recs), num_recs)):
-                            row = recs.iloc[i]
-                            with st.container():
-                                st.markdown(f"""
-                                <div class="restaurant-card">
-                                    <h3>{row['names']}</h3>
-                                    <p>📍 <b>Locality:</b> {row['locality']} | 💰 <b>Price:</b> ₹{row['price for one']}</p>
-                                    <p>🍲 <b>Cuisines:</b> {row['cuisine']}</p>
-                                    <p>⭐ <b>Rating:</b> {row['ratings']}</p>
-                                    <a href="{row['links']}" target="_blank" style="color: #ff4b4b;">Order on Zomato →</a>
-                                </div>
-                                """, unsafe_allow_html=True)
-            except Exception as e:
-                st.error(f"Something went wrong: {e}")
-        else:
-            st.warning("📍 This restaurant isn't in our database. Try 'Bawarchi'!")
+                if recs.empty:
+                    st.warning("⚠️ No matches found. Try expanding your area or budget!")
+                else:
+                    st.subheader(f"Because you liked {target_restaurant}...")
+                    for i in range(min(len(recs), num_recs)):
+                        row = recs.iloc[i]
+                        with st.container():
+                            st.markdown(f"""
+                            <div class="restaurant-card">
+                                <h3>{row['names']}</h3>
+                                <p>📍 <b>Locality:</b> {row['locality']} | 💰 <b>Price:</b> ₹{row['price for one']}</p>
+                                <p>🍲 <b>Cuisines:</b> {row['cuisine']}</p>
+                                <p>⭐ <b>Rating:</b> {row['ratings']}</p>
+                                <a href="{row['links']}" target="_blank" style="color: #ff4b4b;">Order on Zomato →</a>
+                            </div>
+                            """, unsafe_allow_html=True)
+        except Exception as e:
+            st.error(f"Something went wrong: {e}")
+    else:
+        st.warning("📍 This restaurant isn't in our database. Try 'Bawarchi' or 'pista house' !")
