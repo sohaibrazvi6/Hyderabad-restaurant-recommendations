@@ -77,7 +77,7 @@ st.sidebar.info("💡 **Pro Tip:** This app uses TF-IDF and Cosine Similarity to
 # --- MAIN INTERFACE ---
 col1, col2 = st.columns([1, 1])
 
-    with col1:
+with col1:
         target_restaurant = st.selectbox("Type or select a restaurant you love:", options=df['names'].unique())
         num_recs = st.number_input("How many recommendations?", min_value=1, max_value=10, value=5)
 
@@ -116,4 +116,5 @@ col1, col2 = st.columns([1, 1])
                 st.error(f"Something went wrong: {e}")
         else:
             st.warning("📍 This restaurant isn't in our database. Try 'Bawarchi'!")
+
 
