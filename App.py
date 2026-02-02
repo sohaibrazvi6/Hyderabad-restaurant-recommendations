@@ -77,56 +77,42 @@ st.sidebar.info("💡 **Pro Tip:** This app uses TF-IDF and Cosine Similarity to
 # --- MAIN INTERFACE ---
 col1, col2 = st.columns([1, 1])
 
-with col1:
-    target_restaurant = st.selectbox("Type or select a restaurant you love:", options=df['names'].unique())
-    num_recs = st.number_input("How many recommendations?", min_value=3, max_value=10, value=5)
+    with col1:
+        target_restaurant = st.selectbox("Type or select a restaurant you love:", options=df['names'].unique())
+        num_recs = st.number_input("How many recommendations?", min_value=1, max_value=10, value=5)
 
-if st.button("✨ Get Recommendations"):
-    # Recommendation Logic
-    try:
-        idx = df[df['names'] == target_restaurant].index[0]
-        sim_scores = list(enumerate(cosine_sim[idx]))
-        sim_scores = sorted(sim_scores, key=lambda x: x[1], reverse=True)
-        
-        # Pull candidate indices (top 50 for filtering)
-        candidate_indices = [i[0] for i in sim_scores[1:51]]
-        recs = df.iloc[candidate_indices].copy()
-        
-        # Apply Hybrid Filters
-        if selected_area:
-            recs = recs[recs['locality'].isin(selected_area)]
-        recs = recs[recs['price for one'] <= budget]
-        
-        if recs.empty:
-            st.warning("No matches found with those filters. Try expanding your area or budget!")
-        else:
-            st.subheader(f"Because you liked {target_restaurant}...")
-            
-            for i in range(min(len(recs), num_recs)):
-                row = recs.iloc[i]
-                with st.container():
-                    st.markdown(f"""
-                        <div class="restaurant-card">
-                            <h3>{row['names']}</h3>
-                            <p><b>📍 Locality:</b> {row['locality']} | <b>💰 Price:</b> ₹{row['price for one']}</p>
-                            <p><b>🥘 Cuisines:</b> {row['cuisine']}</p>
-                            <p><b>⭐ Rating:</b> {row['ratings']}</p>
-                            <a href="{row['links']}" target="_blank" style="color: #ff4b4b;">Order on Zomato →</a>
-                        </div>
-                    """, unsafe_allow_html=True)
+    if st.button("✨ Get Recommendations"):
+        if target_restaurant in df['names'].values:
+            try:
+                with st.spinner('Analyzing flavor profiles...'):
+                    idx = df[df['names'] == target_restaurant].index[0]
+                    sim_scores = list(enumerate(cosine_sim[idx]))
+                    sim_scores = sorted(sim_scores, key=lambda x: x[1], reverse=True)[1:51]
                     
-    except Exception as e:
-        st.error(f"Something went wrong: {e}")
+                    candidate_indices = [i[0] for i in sim_scores]
+                    recs = df.iloc[candidate_indices].copy()
+                    
+                    if selected_area:
+                        recs = recs[recs['locality'].isin(selected_area)]
+                    recs = recs[recs['price for one'] <= budget]
 
-# --- STEP 8: SENTIMENT INTEGRATION (Optional Peak Feature) ---
-st.divider()
-st.subheader("💬 Vibe Check (Sentiment Analysis)")
-with st.expander("Is the latest review positive? Check here before you go!"):
-    user_review = st.text_area("Paste a recent review from Zomato/Google here:")
-    if st.button("Analyze Vibe"):
-        # This is where you'd link your Bidirectional LSTM model
-        # For now, we'll simulate the integration logic
-        st.success("Analysis Engine Linked! (Using your Sentiment App's LSTM Logic)")
-
-        st.info("The review suggests a **Positive Vibe** with 92% confidence.")
-
+                    if recs.empty:
+                        st.warning("⚠️ No matches found. Try expanding your area or budget!")
+                    else:
+                        st.subheader(f"Because you liked {target_restaurant}...")
+                        for i in range(min(len(recs), num_recs)):
+                            row = recs.iloc[i]
+                            with st.container():
+                                st.markdown(f"""
+                                <div class="restaurant-card">
+                                    <h3>{row['names']}</h3>
+                                    <p>📍 <b>Locality:</b> {row['locality']} | 💰 <b>Price:</b> ₹{row['price for one']}</p>
+                                    <p>🍲 <b>Cuisines:</b> {row['cuisine']}</p>
+                                    <p>⭐ <b>Rating:</b> {row['ratings']}</p>
+                                    <a href="{row['links']}" target="_blank" style="color: #ff4b4b;">Order on Zomato →</a>
+                                </div>
+                                """, unsafe_allow_html=True)
+            except Exception as e:
+                st.error(f"Something went wrong: {e}")
+        else:
+            st.warning("📍 This restaurant isn't in our database. Try 'Bawarchi'!")
